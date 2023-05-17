@@ -14,7 +14,7 @@ public class MoveToNextLevel : MonoBehaviour
 
     public void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.tag == "Player")
+        if (other.tag == "end")
         {
             // game has 6 levels == buildIndex is 8 (menu, map, level1, ...)
             if (SceneManager.GetActiveScene().buildIndex == 8)
@@ -24,14 +24,8 @@ public class MoveToNextLevel : MonoBehaviour
             }
             else
             {
-                // move to next scene
-                SceneManager.LoadScene(nextSceneLoad);
-
-                // setting int for index
-                if (nextSceneLoad > PlayerPrefs.GetInt("levelAt"))
-                {
-                    PlayerPrefs.SetInt("levelAt", nextSceneLoad);
-                }
+                // move to Map scene
+                SceneManager.LoadScene("Map");
             }
         }
     }

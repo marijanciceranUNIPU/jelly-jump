@@ -4,52 +4,86 @@ using UnityEngine;
 
 public class PlayerMovement2D : MonoBehaviour
 {
+    public float moveSpeed; // player speed
+    public float jumpForce;
 
-    private float horizontalInput;
-    private float speed = 8f;
-    private float jumpingPower = 16f;
-    private bool isFacingRight = true;
+    public int jumpsAmount;
+    int jumpsLeft;
+    public Transform GroundCheck; // circle collider
+    public LayerMask GroundLayer;
 
-    [SerializeField] private Rigidbody2D rb;
-    [SerializeField] private Transform groundCheck;
-    [SerializeField] private LayerMask groundLayer;
+    bool isGrounded; 
 
-    // Update is called once per frame
+    float moveInput;
+    Rigidbody2D rb2d;
+    float scaleX;
+
+    void Start()
+    {
+        // on start - fetching player
+        rb2d = GetComponent<Rigidbody2D>();
+        scaleX = transform.localScale.x;
+    }
+
+
     void Update()
     {
-        horizontalInput = Input.GetAxisRaw("Horizontal");
-
-        flip();
-
-        if (Input.GetButtonDown("Jump") && IsGrounded())
-        {
-            rb.velocity = new Vector2(rb.velocity.x, jumpingPower);
-        }
-
-        if (Input.GetButtonUp("Jump") && rb.velocity.y > 0f)
-        {
-            rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
-        }
+        moveInput = Input.GetAxisRaw("Horizontal");
+        Jump();
     }
 
     private void FixedUpdate()
     {
-        rb.velocity = new Vector2(horizontalInput * speed, rb.velocity.y);
+        Move();
     }
 
-    private void flip()
+    public void Move()
     {
-        if (isFacingRight && horizontalInput < 0f || isFacingRight && horizontalInput > 0f)
+        Flip();
+        rb2d.velocity = new Vector2(moveInput * moveSpeed, rb2d.velocity.y);
+    }
+
+    public void Flip()
+    {
+        // moving to the right
+        if (moveInput > 0)
         {
-            isFacingRight = !isFacingRight;
-            Vector3 localScale = transform.localScale;
-            localScale.x *= -1f;
-            transform.localScale = localScale;
+            transform.localScale = new Vector3(scaleX, transform.localScale.y, transform.localScale.z);
+        }
+        // moving to the left
+        if (moveInput < 0)
+        {
+            transform.localScale = new Vector3((-1) * scaleX, transform.localScale.y, transform.localScale.z);
         }
     }
 
-    private bool IsGrounded()
+    public void Jump()
     {
-        return Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
+        // check if space tab is hit
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            CheckIfGrounded();
+            if (jumpsLeft > 0)
+            {
+                rb2d.velocity = new Vector2(rb2d.velocity.x, jumpForce);
+                jumpsLeft--; // decreasing jumps
+            }
+        }
+    }
+
+    public void CheckIfGrounded()
+    {
+        // is grounded when circle collider detect collision
+        isGrounded = Physics2D.OverlapCircle(GroundCheck.position, GroundCheck.GetComponent<CircleCollider2D>().radius, GroundLayer);
+        ResetJumps();
+    }
+
+    public void ResetJumps()
+    {
+        // when hits the ground, number of jumps reset
+        if (isGrounded)
+        {
+            jumpsLeft = jumpsAmount;
+        }
     }
 }
